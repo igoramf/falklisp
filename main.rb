@@ -19,8 +19,11 @@ class Main
             print prompt
             input = gets.chomp
             begin
-                val = eval(parse(input), global_env)
+                parsed_input = parse(input)
+                val = eval(parsed_input, global_env)
                 puts lispstr(val) if val || val == false
+            rescue SyntaxError => e
+                puts "Syntax Error: #{e.message}"
             rescue => e
                 puts "Error: #{e.message}"
             end
