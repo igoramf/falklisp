@@ -1,5 +1,19 @@
-Symbol = String
+# Definições de tipos personalizados para Lisp em Ruby
+LispSymbol = String    
+LispList   = Array    
+LispNumber = [Integer, Float]  #
 
-List = Array
+# Métodos auxiliares para verificação de tipos
+module LispTypes
+  def self.symbol?(obj)
+    obj.is_a?(LispSymbol)
+  end
 
-Number = [Integer, Float]
+  def self.list?(obj)
+    obj.is_a?(LispList)
+  end
+
+  def self.number?(obj)
+    LispNumber.any? { |type| obj.is_a?(type) }
+  end
+end

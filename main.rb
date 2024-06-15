@@ -2,17 +2,19 @@ require_relative "./parsing/main.rb"
 require_relative "./types.rb"
 require_relative "./env.rb"
 require_relative "./procedure.rb"
+require_relative "./eval.rb"
 
 class Main
 
     def call
         @global_env = standard_env
+        @evaluator = Eval.new(@global_env)
         repl()
     end
 
     private
 
-    attr_reader :global_env
+    attr_reader :global_env, :evaluator
 
     def repl(prompt='falklisp> ')
         loop do
@@ -20,12 +22,12 @@ class Main
             input = gets.chomp
             begin
                 parsed_input = parse(input)
-                val = eval(parsed_input, global_env)
+                val = evaluator.eval(parsed_input, global_env)
                 puts lispstr(val) if val || val == false
             rescue SyntaxError => e
                 puts "Syntax Error: #{e.message}"
-            rescue => e
-                puts "Error: #{e.message}"
+            # rescue => e
+            #     puts "Error: #{e.message}"
             end
         end
     end
@@ -35,37 +37,6 @@ class Main
             '(' + exp.map { |e| lispstr(e) }.join(' ') + ')'
         else
             exp.to_s
-        end
-    end
-
-    def eval(x, env = global_env)
-        if env.has_key?(x)
-            env.find(x)[x]
-        elsif !x.is_a?(Array)
-            x
-        else
-            case x[0]
-            when :quote
-                x[1]
-            when :if
-                _, test, conseq, alt = x
-                exp = eval(test, env) ? conseq : alt
-                eval(exp, env)
-            when :define
-                _, var, exp = x
-                val = eval(exp, env)
-                env[var] = val
-            when :set!
-                _, var, exp = x
-                env.find(var)[var] = eval(exp, env)
-            when :lambda
-                _, parms, body = x
-                Procedure.new(parms, body, env)
-            else
-                proc = eval(x[0].to_s, env)
-                args = x[1..].map { |arg| eval(arg, env) }
-                proc.call(*args)
-            end
         end
     end
 
